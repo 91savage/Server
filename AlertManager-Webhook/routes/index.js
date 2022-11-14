@@ -14,7 +14,7 @@ router.post('/', function (req, res, next) {
         port: 587,
         auth: {
             user: 'ekdma1403@gmail.com',
-            pass: 'xqmccweihrjzbdga',
+            pass: '앱비밀번호',
         },
     });
     data.alerts.forEach(alert => {
@@ -28,7 +28,9 @@ router.post('/', function (req, res, next) {
                 from: 'Alertmanager <ekdma1403@gmail.com>',
                 to: 'ekdma1403@gmail.com',
                 subject: alert.annotations.summary,
-                html: `<div>${alert.annotations.description}</div>` + `<a href=""> Turn off</a>`,
+                html:
+                    `<div>${alert.annotations.description}</div>` +
+                    `<a href="http://localhost:3000/silence/3${qs.slice(0, -1)}"> Turn off</a>`,
             },
             e => {
                 if (e) res.status(500).json({ result: 'fail' });
@@ -36,6 +38,41 @@ router.post('/', function (req, res, next) {
             }
         );
     });
+});
+
+router.get('/silence/:hour', async (req, res, next) => {
+    const hour = req.params.hour;
+    var labels = req.query;
+
+    var matchers = [];
+    Object.keys(labels).forEach(k => {
+        matchers.push({
+            name: k,
+            value: labels[k],
+            isRegex: false,
+            isEqual: true,
+        });
+    });
+    try {
+        await axios({
+            method: 'POST',
+            url: 'http://alertmanager:9093/api/v2/silences',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: {
+                matchers,
+                startsAt: new Date(),
+                endsAt: new Date(Date.now() + 60 * 60 * 1000 * hour),
+                createdBy: 'Webhook_sehun',
+                comment: 'This is silence is Created by Webhook_sehun',
+            },
+        });
+        res.send(`<script>alert("Success"); window.close();</script>`);
+    } catch (e) {
+        res.send(`<script>alert("Fail"); window.close();</script>`);
+        console.log(e);
+    }
 });
 
 module.exports = router;
