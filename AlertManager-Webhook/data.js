@@ -1,4 +1,4 @@
-module.export = {
+module.exports = {
     receiver: 'webhook',
     status: 'firing',
     alerts: [
