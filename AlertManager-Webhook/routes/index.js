@@ -7,14 +7,17 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 /* GET home page. */
 router.post('/', function (req, res, next) {
-    var data = require('../data');
+    //var data = require('../data');
+
+    var data = req.body;
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         host: 'smtp.gmail.com',
         port: 587,
         auth: {
             user: 'ekdma1403@gmail.com',
-            pass: '앱비밀번호',
+            pass: 'xqmccweihrjzbdga',
         },
     });
     data.alerts.forEach(alert => {
@@ -30,9 +33,13 @@ router.post('/', function (req, res, next) {
                 subject: alert.annotations.summary,
                 html:
                     `<div>${alert.annotations.description}</div>` +
-                    `<a href="http://localhost:3000/silence/3${qs.slice(0, -1)}"> Turn off</a>`,
+                    `<a href="http://alertmanager:8080/silence/3${qs.slice(
+                        0,
+                        -1
+                    )}"> 누르면 알람이 꺼져요</a>`,
             },
             e => {
+                console.log(e);
                 if (e) res.status(500).json({ result: 'fail' });
                 else res.status(200).json({ result: 'success' });
             }
